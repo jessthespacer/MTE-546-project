@@ -18,11 +18,15 @@ class var_store:
 		self.mu_i = ""
 		self.m = ""
 		self.g = 9.81
-		self.Lr = 1
+		self.L_r = 1
 		self.L = 1
 		self.delta_t = ""
 		self.Q = ""
-		
+		self.A = ""
+		self.dt = ""
+		self.C_d = ""
+
+
 
 
 
