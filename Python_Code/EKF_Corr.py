@@ -9,12 +9,12 @@ class EKF_Corr(EKF_Pred):
 		
 		
 	def Yk(self):
-		pass
-		#I don't think we need this?
+		#Need to get from sensor data
 
 	def h(self):
 		#is this the sensor model?
-		pass
+		identity = np.ones(Xk.size)
+		return np.matmul(identity,self.Xk)
 
 
 	def Pk_corr(self):
@@ -33,9 +33,10 @@ class EKF_Corr(EKF_Pred):
 		#should be close to identity
 
 		pass
-
+	#main function
 	def Xk_pred_corr(self):
-		pass
-
+		val = self.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)
+		val_2 = self.h(self.Xk) - self.h(self.Xk_pred(Xk_pred_corr_k_m1,Uk_m1))
+		return val + np.matmul(self.Kf_corr(),val_2)
 
 	
