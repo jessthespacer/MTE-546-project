@@ -1,6 +1,7 @@
 import numpy as np
 
 class var_store:
+	#values subject to change after receiving simulation data
 
 	def __init__(self):
 
@@ -12,14 +13,12 @@ class var_store:
 		self.Tk_m1 = ""
 		self.Q = np.ones((3,3))
 ###########################################################################################
-		#control and state variables
-		#Vehicle speed [m/s]
-		
+		#control and state variables		
 ###########################################################################################
 		#Model constants
+		#!Values subject to change
 		#r: Wheel radius [m]
 		self.r = 0.5
-
 		#Axle coefficient of friction for wheel 𝑖; 𝜇𝑓 for front wheel, 𝜇𝑟 for rear wheel
 		self.mu_i = 0.5
 		#Vehicle mass [kg]
