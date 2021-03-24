@@ -160,9 +160,9 @@ class CarlaGame(object):
         pygame.init()
         self._initialize_game()
         try:
-            with open('case3r.csv', mode='w',newline='') as measurements_file:
+            with open('caseMVP.csv', mode='w',newline='') as measurements_file:
                 measurements_writer = csv.writer(measurements_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                measurements_writer.writerow(["Steering angle","Throttle","forward speed","yaw rotation"])
+                measurements_writer.writerow(["Time","Steering angle","Throttle","forward speed","yaw rotation","acceleration"])
                 while True:
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -201,14 +201,22 @@ class CarlaGame(object):
         measurements_row = []
         measurements, sensor_data = self.client.read_data()
         print("KAPILAN")
+        print(float(measurements.game_timestamp))
         print(float(measurements.player_measurements.autopilot_control.steer))
         print(float(measurements.player_measurements.autopilot_control.throttle))
         print(float(measurements.player_measurements.forward_speed))
         print(float(measurements.player_measurements.transform.rotation.yaw))
+        print(measurements.player_measurements.acceleration)
+        acceleration = 0
+        if(measurements.player_measurements.acceleration.x and measurements.player_measurements.acceleration.y and measurements.player_measurements.acceleration.z):
+            acceleration = np.linalg.norm(np.array([measurements.player_measurements.acceleration.x,measurements.player_measurements.acceleration.y,measurements.player_measurements.acceleration.z]))
+
+        measurements_row.append(float(measurements.game_timestamp))
         measurements_row.append(float(measurements.player_measurements.autopilot_control.steer))
         measurements_row.append(float(measurements.player_measurements.autopilot_control.throttle))
         measurements_row.append(float(measurements.player_measurements.forward_speed))
         measurements_row.append(float(measurements.player_measurements.transform.rotation.yaw))
+        measurements_row.append(acceleration)
         measurements_writer.writerow(measurements_row)
         print("KAPILAN END")
 
