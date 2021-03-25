@@ -29,6 +29,7 @@ class EKF_Corr(EKF_Pred):
 		return np.matmul(val,np.inv(val_2))
 
 	def Hk(self):
+		#should be just Fk
 		#3x3 matrix
 		#should be close to identity
 
