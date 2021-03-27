@@ -80,8 +80,8 @@ def make_carla_settings(args):
     settings.set(
         SynchronousMode=False,
         SendNonPlayerAgentsInfo=True,
-        NumberOfVehicles=15,
-        NumberOfPedestrians=30,
+        NumberOfVehicles=1,
+        NumberOfPedestrians=1,
         WeatherId=random.choice([1, 3, 7, 8, 14]),
         QualityLevel=args.quality_level)
     settings.randomize_seeds()
@@ -160,7 +160,7 @@ class CarlaGame(object):
         pygame.init()
         self._initialize_game()
         try:
-            with open('caseMVP.csv', mode='w',newline='') as measurements_file:
+            with open('chummathrottlecase.csv', mode='w',newline='') as measurements_file:
                 measurements_writer = csv.writer(measurements_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 measurements_writer.writerow(["Time","Steering angle","Throttle","forward speed","yaw rotation","acceleration"])
                 while True:
@@ -200,25 +200,7 @@ class CarlaGame(object):
         self._timer.tick()
         measurements_row = []
         measurements, sensor_data = self.client.read_data()
-        print("KAPILAN")
-        print(float(measurements.game_timestamp))
-        print(float(measurements.player_measurements.autopilot_control.steer))
-        print(float(measurements.player_measurements.autopilot_control.throttle))
-        print(float(measurements.player_measurements.forward_speed))
-        print(float(measurements.player_measurements.transform.rotation.yaw))
-        print(measurements.player_measurements.acceleration)
-        acceleration = 0
-        if(measurements.player_measurements.acceleration.x and measurements.player_measurements.acceleration.y and measurements.player_measurements.acceleration.z):
-            acceleration = np.linalg.norm(np.array([measurements.player_measurements.acceleration.x,measurements.player_measurements.acceleration.y,measurements.player_measurements.acceleration.z]))
 
-        measurements_row.append(float(measurements.game_timestamp))
-        measurements_row.append(float(measurements.player_measurements.autopilot_control.steer))
-        measurements_row.append(float(measurements.player_measurements.autopilot_control.throttle))
-        measurements_row.append(float(measurements.player_measurements.forward_speed))
-        measurements_row.append(float(measurements.player_measurements.transform.rotation.yaw))
-        measurements_row.append(acceleration)
-        measurements_writer.writerow(measurements_row)
-        print("KAPILAN END")
 
         self._main_image = sensor_data.get('CameraRGB', None)
         self._mini_view_image1 = sensor_data.get('CameraDepth', None)
@@ -258,7 +240,25 @@ class CarlaGame(object):
                 measurements.player_measurements.transform.location.y,
                 measurements.player_measurements.transform.location.z])
             self._agent_positions = measurements.non_player_agents
+        print("KAPILAN")
+        print(float(measurements.game_timestamp))
+        print(float(control.steer))
+        print(float(control.throttle))
+        print(float(measurements.player_measurements.forward_speed))
+        print(float(measurements.player_measurements.transform.rotation.yaw))
+        print(measurements.player_measurements.acceleration)
+        acceleration = 0
+        if(measurements.player_measurements.acceleration.x and measurements.player_measurements.acceleration.y and measurements.player_measurements.acceleration.z):
+            acceleration = np.linalg.norm(np.array([measurements.player_measurements.acceleration.x,measurements.player_measurements.acceleration.y,measurements.player_measurements.acceleration.z]))
 
+        measurements_row.append(float(measurements.game_timestamp))
+        measurements_row.append(float(control.steer))
+        measurements_row.append(float(control.throttle))
+        measurements_row.append(float(measurements.player_measurements.forward_speed))
+        measurements_row.append(float(measurements.player_measurements.transform.rotation.yaw))
+        measurements_row.append(acceleration)
+        measurements_writer.writerow(measurements_row)
+        # print("KAPILAN END")
         if control is None:
             self._on_new_episode()
         elif self._enable_autopilot:
