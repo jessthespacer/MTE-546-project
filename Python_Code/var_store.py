@@ -19,22 +19,21 @@ class var_store:
 		#loaded variables -> data being loaded in from csv(probably pandas)
 		self.case_name = ""
 		self.csv = ""
+		#value returned from rows based on counter value
+		self.counter = 0
 ###########################################################################################
 		#control and state vars
 		#mostly methods
 ###########################################################################################
 		#Model constants
-		#!Values subject to change
-		#r: Wheel radius [m]
 		#Distance between rear wheel axis and COG [m]
 		self.L_r = 1
 		#Length between rear and front wheel axes [m]
 		self.L = 1
-		#difference in time
-		self.dt = 0.05
+		
 		
 ###########################################################################################
-class data_process(var_store)
+class data_process(var_store):
 	def __init__(self):
 		super().__init__()
 

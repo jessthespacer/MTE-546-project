@@ -8,36 +8,46 @@ class EKF_corr(EKF_pred):
 	def __init__(self):
 		super().__init__()
 	
-		
-	def Yk(self,Xk):
+	#!sensor data	
+	def Yk(self):
 		#Need to get from sensor data
+		#column on sensor data
+		#'Time	Steering angle	Throttle	forward speed	yaw rotation	acceleration'
+		return np.random.rand(3,1)
+
+	#!sensor model
+	def h(self,Xk):
 		return Xk
 
-	def h(self,val):
-		#is this the sensor model?
-		identity = np.random.randn(val.size)
-		return val
-
-	def Pk_corr(self):
-		val = np.matmul(self.Kk_corr(),self.Hk())
+	#!State covariance
+	def Pk_corr(self,Pk_m1,Xk,Uk):
+		#Xk and Uk are actually predm1 and m1
+		#written as Xk,Uk for simplicity
+		val = np.matmul(self.Kk_corr(Pk_m1,Xk,Uk),self.Hk(Xk))
 		identity = np.ones(np.size(val))
 		return np.matmul((identity - val),self.Pk(Pk_m1))
 
-
-	def Kk_corr(self,Pk_m1):
-		val =  np.matmul(self.Pk(Pk_m1),np.transpose(self.Hk()))
-		val_2 = np.matmul(np.matmul(self.Hk(),self.Pk(Pk_m1)),np.transpose(self.Hk())) + self.R
-		print(val_2)
+	#!kalman matrix gain
+	def Kk_corr(self,Pk_m1,Xk,Uk):
+		#Xk and Uk are actually predm1 and m1
+		#written as Xk,Uk for simplicity		
+		val =  np.matmul(self.Pk(Pk_m1,Xk,Uk),np.transpose(self.Hk(Xk)))
+		val_2 = np.matmul(np.matmul(self.Hk(Xk),self.Pk(Pk_m1,Xk,Uk)),np.transpose(self.Hk(Xk))) + self.R
 		return np.matmul(val,np.linalg.inv(val_2))
 
-	def Hk(self):		
+	#!jacobian of h(x)
+	def Hk(self,Xk):		
 		return np.random.rand(3,3)
 		
-	#main function
+	#!main function
 	def Xk_pred_corr(self,Xk_pred_corr_k_m1,Uk_m1,Pk_m1):
+		assert Xk_pred_corr_k_m1.shape == (3,1), 'incorr Xk_pred_corr_k_m1 shape'
+		assert Uk_m1.shape == (2,1), 'incorr Uk_m1 shape'
 		val = self.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)	
-		val_2 = self.h(self.Xk) - self.h(val)		
-		return val + np.matmul(self.Kk_corr(Pk_m1),val_2)
+		val_2 = self.Yk() - self.h(Xk_pred_corr_k_m1)		
+		ret_val =  val + np.matmul(self.Kk_corr(Pk_m1,Xk_pred_corr_k_m1,Uk_m1),val_2)
+		assert ret_val.shape == (3,1), 'corrected pred is incorr shape'
+		return ret_val
 
 
 if __name__ == '__main__':
@@ -46,19 +56,10 @@ if __name__ == '__main__':
 	Xk_pred_corr_k_m1 = np.random.rand(3,1)
 	Uk_m1 = np.random.rand(2,1)
 	Pk_m1 = np.random.rand(3,3)
-	EKF_corr.Xk_pred_corr(Xk_pred_corr_k_m1,Uk_m1,Pk_m1)
+	v = EKF_corr.Xk_pred_corr(Xk_pred_corr_k_m1,Uk_m1,Pk_m1)
+	print(v)
 
 
-
-
-'''
-April 4th -> come up with airfcraft family set.
-airfoil selection and wing design
-
-April 4th -> Also come up with airfoil selction and wing design:
-April 8th-> engine selection and placement
-April 18th -> finish peromance analysis & sketch of final design
-'''
 
 #TODO->
 '''
