@@ -34,12 +34,10 @@ print('jacobian')
 print(v_1_1,':',v_2_1,':',v_3_1 )
 print(v_1_2,':',v_2_2,':',v_3_2 )
 print(v_1_3,':',v_2_3,':',v_3_3 )
-'''
 
+#Output-> 
+'''
 Matrix([[-1.0*A*C_d*dt*vk/m + 1]]) : Matrix([[L*dt*tan(del_k_m1)/(L**2 + L_r**2*tan(del_k_m1)**2)]]) : Matrix([[L*del_dot_m1*dt*(L**2 - L_r**2*tan(del_k_m1)**2)/(L_r**4*cos(del_k_m1)**2*tan(del_k_m1)**4)]])
 Matrix([[0]]) : Matrix([[1]]) : Matrix([[0]])
 Matrix([[0]]) : Matrix([[0]]) : Matrix([[1]])
-
-
-
 '''
