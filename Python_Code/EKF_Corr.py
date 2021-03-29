@@ -9,13 +9,13 @@ class EKF_corr(EKF_pred):
 		super().__init__()
 	
 		
-	def Yk(self):
+	def Yk(self,Xk):
 		#Need to get from sensor data
-		pass
+		return Xk
 
 	def h(self,val):
 		#is this the sensor model?
-		identity = np.ones(val.size)
+		identity = np.random.randn(val.size)
 		return val
 
 	def Pk_corr(self):
@@ -27,19 +27,16 @@ class EKF_corr(EKF_pred):
 	def Kk_corr(self,Pk_m1):
 		val =  np.matmul(self.Pk(Pk_m1),np.transpose(self.Hk()))
 		val_2 = np.matmul(np.matmul(self.Hk(),self.Pk(Pk_m1)),np.transpose(self.Hk())) + self.R
+		print(val_2)
 		return np.matmul(val,np.linalg.inv(val_2))
 
-	def Hk(self):
-		#should be just Fk
-		#3x3 matrix
-		#should be close to identity		
-		return np.ones((3,3))
+	def Hk(self):		
+		return np.random.rand(3,3)
 		
 	#main function
 	def Xk_pred_corr(self,Xk_pred_corr_k_m1,Uk_m1,Pk_m1):
 		val = self.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)	
-		val_2 = self.h(self.Xk) - self.h(val)
-		print(self.h(self.Xk))
+		val_2 = self.h(self.Xk) - self.h(val)		
 		return val + np.matmul(self.Kk_corr(Pk_m1),val_2)
 
 
@@ -61,5 +58,14 @@ airfoil selection and wing design
 April 4th -> Also come up with airfoil selction and wing design:
 April 8th-> engine selection and placement
 April 18th -> finish peromance analysis & sketch of final design
+'''
 
+#TODO->
+'''
+- CHECK EACH INDIVIDUAL METHOD
+- HAVE ASSERTIONS FOR INPUT
+- COMPLETE JACOBINAS
+- FINSIH READING AND WRITING CODE FOR EKF DATA
+- Have several iterations
+- GENERATE SIMPLE PLOT DATA
 '''

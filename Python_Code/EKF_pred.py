@@ -7,32 +7,33 @@ class EKF_pred(var_store):
 	def __init__(self):
 		super().__init__()
 
-	#Throttle setting, 0<T<1
+	#!Throttle setting, 0<T<1
 	def Tk(self):
-		#subject to change if time dependat
+		#subject to change if time dependant
+		#get from csv data
 		Tk = self.Tk_m1	
 		return Tk_m1
 
-	#State covariance
+	#!State covariance
 	def Pk(self,Pk_m1):
 		Fk = self.Fk()
 		return np.matmul(np.matmul(Fk,Pk_m1),np.transpose(Fk)) + self.Q
 
-	#Steering angle rate [rad/s]
+	#!Steering angle rate [rad/s]
 	def del_dot_m1(self,del_k_m1,del_k_m2):
 		return (del_k_m1 - del_k_m2)/self.dt
-
+	#!
 	def ad(self,v):
 		return self.b()*v
-
+	#!
 	def af(self,T,v):
 		return self.c1(T)*v + self.c2(T)
 
-	#Specific power model parameter 1 [m/s2]
+	#!Specific power model parameter 1 [m/s2]
 	def c1(self,T):
 		return -0.8304*(T**2)+1.6639*T
 
-	#Specific power model parameter 1 [m/s2]
+	#!Specific power model parameter 1 [m/s2]
 	def c2(self,T):
 		return -0.0323*T**2+0.4115*T
 
@@ -41,18 +42,20 @@ class EKF_pred(var_store):
 		return m.atan((self.L_r/self.L)*m.tan(del_k_m1))
 
 
-	#jacobian of f
+	#!jacobian of f
 	def Fk(self):
 		return np.random.rand(3,3)
 
-	#friction coefficient
+	#!friction coefficient
 	def b(self,s=1):
 		return 0.365056*(s**(-1))
 
 
 
-	#State prediction
+	#!State prediction
 	def Xk_pred(self,Xk_pred_corr_k_m1,Uk_m1):
+		assert Xk_pred_corr_k_m1.shape == (3,1), 'incorr Xk_pred_corr_k_m1 shape'
+		assert Uk_m1.shape == (2,1), 'incorr Uk_m1 shape'
 		vk_m1 = Xk_pred_corr_k_m1[0,:]
 		thetha_k_m1 = Xk_pred_corr_k_m1[1,:]
 		w_k_m1 = Xk_pred_corr_k_m1[2,:]
@@ -65,7 +68,7 @@ class EKF_pred(var_store):
 		self.del_k_m2 = del_k_m1
 		#insert assertion on shape type
 		ret_val = np.array([vk,thetha_k,w_k])
-		assert ret_val.shape == (3,1)
+		assert ret_val.shape == (3,1), 'incorr Xk_pred shape'
 		return ret_val
 
 
@@ -81,3 +84,7 @@ class EKF_pred(var_store):
 
 if __name__ == '__main__':
 	E = EKF_pred()
+	Xk_pred_corr_k_m1 = np.ones((3,1))
+	Uk_m1 = np.ones((2,1))
+	v = E.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)
+

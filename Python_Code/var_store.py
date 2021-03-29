@@ -14,6 +14,7 @@ class var_store:
 		self.Q = np.ones((3,3))
 		self.R = np.ones((3,3))
 		self.Xk = np.random.rand(3,1)
+		self.del_k_m2 = 0
 ###########################################################################################
 		#loaded variables -> data being loaded in from csv(probably pandas)
 		self.case_name = ""
@@ -33,19 +34,31 @@ class var_store:
 		self.dt = 0.05
 		
 ###########################################################################################
-	#get data from csv
-	def get_data():
+class data_process(var_store)
+	def __init__(self):
+		super().__init__()
+
+
+	def get_data(self):
 		return None
 
+	def process_data(self):
+		return None
 
-'''
-store all global variables - y 
-create and run jacobian matrixes
-verify all matrixes and run again
-insert assertion for EKF_pred -> use main helper function to run all
-have a way of iterating over time//dealing with continued vars
-get kaps data and run with ekf
-'''
+	def save_clean_data(self):
+		return None
+
+	def analyze_data_Main(self):
+		#main loop
+		pass
+
+	def visualized_analyzed(self):
+		pass
+
+	def save_analyzed(self):
+		pass
+
+
 
 
 
