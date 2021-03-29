@@ -10,10 +10,18 @@ class var_store:
 		self.state_cols = 1
 		#ekf variables
 		#T: Front wheel drive torque [N-m]		
-		self.Tk_m1 = ""
+		self.Tk_m1 = 2
 		self.Q = np.ones((3,3))
+		self.R = np.ones((3,3))
+		self.Xk = np.random.rand(3,1)
 ###########################################################################################
-		#control and state variables		
+		#loaded variables -> data being loaded in from csv(probably pandas)
+		self.csv = ""
+###########################################################################################
+		#control and state variables -> designated as methods or vars otherwise below
+		#rolling friction force
+		self.f_f = 5	
+		self.f_r = 5
 ###########################################################################################
 		#Model constants
 		#!Values subject to change
