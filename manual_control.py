@@ -59,6 +59,7 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
+import carla
 from carla import image_converter
 from carla import sensor
 from carla.client import make_carla_client, VehicleControl
@@ -154,15 +155,17 @@ class CarlaGame(object):
         self._map_view = self._map.get_map(WINDOW_HEIGHT) if self._city_name is not None else None
         self._position = None
         self._agent_positions = None
+        self.prev_time = None
+        self.prev_yaw = None
 
     def execute(self):
         """Launch the PyGame."""
         pygame.init()
         self._initialize_game()
         try:
-            with open('chummathrottlecase.csv', mode='w',newline='') as measurements_file:
+            with open('MVPcasefinal.csv', mode='w',newline='') as measurements_file:
                 measurements_writer = csv.writer(measurements_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                measurements_writer.writerow(["Time","Steering angle","Throttle","forward speed","yaw rotation","acceleration"])
+                measurements_writer.writerow(["Time","Steering angle","Throttle","forward speed","yaw angle","acceleration", "yaw angular rotation"])
                 while True:
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -241,6 +244,8 @@ class CarlaGame(object):
                 measurements.player_measurements.transform.location.z])
             self._agent_positions = measurements.non_player_agents
         print("KAPILAN")
+        #print(carla.IMUMeasurement)
+
         print(float(measurements.game_timestamp))
         print(float(control.steer))
         print(float(control.throttle))
@@ -257,6 +262,24 @@ class CarlaGame(object):
         measurements_row.append(float(measurements.player_measurements.forward_speed))
         measurements_row.append(float(measurements.player_measurements.transform.rotation.yaw))
         measurements_row.append(acceleration)
+
+        if(self.prev_time == None):
+            self.prev_time = float(measurements.game_timestamp/1000.0)
+            self.prev_yaw = float(measurements.player_measurements.transform.rotation.yaw)
+            yawspeed = 0
+            measurements_row.append(yawspeed)
+        else:
+            yawdiff = (float(measurements.player_measurements.transform.rotation.yaw)-self.prev_yaw)
+            timediff = (float(measurements.game_timestamp/1000.0)-self.prev_time)
+            yawspeed = float(yawdiff)/float(timediff)
+            if yawspeed < 0.05 and yawspeed > -0.05:
+                yawspeed = 0
+            self.prev_time = float(measurements.game_timestamp/1000.0)
+            self.prev_yaw = float(measurements.player_measurements.transform.rotation.yaw)
+
+            measurements_row.append(yawspeed)
+
+
         measurements_writer.writerow(measurements_row)
         # print("KAPILAN END")
         if control is None:
