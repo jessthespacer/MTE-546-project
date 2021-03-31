@@ -13,31 +13,29 @@ class EKF_pred(var_store):
 		#subject to change if time dependant
 		#get from csv data
 		Tk = self.Tk_m1	
-		return Tk_m1
+		return Tk
 
 
 	def dt(self):
 		return 0.05
 
 	#!jacobian of f
-	def Fk(self,Xk_pred_corr_k_m1,Uk_m1,T):
+	def Fk(self,Xk_pred_corr_k_m1,Uk_m1):
 		dt = self.dt()
 		b = self.b()
+		T = self.Tk()
 		c1 = self.c1(T)
 		L = self.L
 		L_r = self.L_r
 		del_k_m1 = self.del_k_m1
-		del_dot_m1	 = self.del_dot_m1(self.del_k_m1)	
-
+		del_dot_m1	= self.del_dot_m1(self.del_k_m1)	
+		#print('del_dot_m1',del_dot_m1)
 		row_1 = np.array([dt*(-b + c1) + 1,0,0])
 		row_2 = np.array([L*dt*tan(del_k_m1)/(L**2 + L_r**2*tan(del_k_m1)**2),1,0])
 		row_3 = np.array([L*del_dot_m1*dt*(L**2 - L_r**2*tan(del_k_m1)**2)/((L**2 + L_r**2*tan(del_k_m1)**2)**2*cos(del_k_m1)**2),0,1])
 		ret_val =  np.stack([row_1,row_2,row_3])
 		assert ret_val.shape == (3,3), 'weird jacobian size'
-
 		return ret_val
-
-
 
 	#State covariance
 	def Pk(self,Pk_m1,Xk,Uk):
@@ -46,7 +44,9 @@ class EKF_pred(var_store):
 
 	#Steering angle rate [rad/s]
 	def del_dot_m1(self,del_k_m1):
-		return (del_k_m1 - self.del_k_m2)/self.dt()
+		del_dot_m1 = (del_k_m1 - self.del_k_m2)/self.dt()
+		#print('self.del_k_m2 ',type(self.del_k_m2))
+		return del_dot_m1
 
 	#Deceleration caused by drag [m/s2]
 	def ad(self,v):
@@ -95,9 +95,10 @@ class EKF_pred(var_store):
 		w_k = w_k_m1 + ((self.L*(self.L**2 - (self.L_r**2)*\
 			(m.tan(del_k_m1)**2)))/(((self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2))**2)\
 				*(m.cos(del_k_m1)**2)))\
-						*vk_m1*self.del_dot_m1(del_k_m1,self.del_k_m2)*self.dt()
+						*vk_m1*self.del_dot_m1(del_k_m1)*self.dt()
 		#save value for next iteration
-		self.del_k_m2 = del_k_m1
+		self.del_k_m2 = del_k_m1[0]
+		
 		#insert assertion on shape type
 		ret_val = np.array([vk,thetha_k,w_k])
 		assert ret_val.shape == (3,1), 'incorr Xk_pred shape'
@@ -114,4 +115,5 @@ if __name__ == '__main__':
 	v = E.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)
 	print(v)
 	n = E.Pk(Pk_m1,Xk_pred_corr_k_m1,Uk_m1)
+	print(n)
 
