@@ -3,7 +3,6 @@ from var_store import var_store
 import math as m
 from math import tan,cos
 
-
 class EKF_pred(var_store):
 
 	def __init__(self):
@@ -36,9 +35,7 @@ class EKF_pred(var_store):
 	#State covariance
 	def Pk(self,Pk_m1,Xk,Uk):
 		Fk = self.Fk(Xk,Uk)
-		self.Pk_val = np.matmul(np.matmul(Fk,Pk_m1),np.transpose(Fk)) + self.Q
-		return self.Pk_val
-
+		return np.matmul(np.matmul(Fk,Pk_m1),np.transpose(Fk)) + self.Q
 
 	#Steering angle rate [rad/s]
 	def del_dot_m1(self,del_k_m1):
@@ -82,9 +79,8 @@ class EKF_pred(var_store):
 		T_k_m1 = Uk_m1[0,:]
 		del_k_m1 = Uk_m1[1,:]
 		#check if sterring ange makes sense
-		#remove assertion when using real data
-		#assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
-		#calculate current iteration
+		assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
+		#calc_1
 		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt()
 		#calc_2
 		thetha_k = thetha_k_m1 + \
@@ -99,16 +95,20 @@ class EKF_pred(var_store):
 		self.del_k_m2 = del_k_m1[0]		
 		#insert assertion on shape type
 		ret_val = np.array([vk,thetha_k,w_k])
+		
 		assert ret_val.shape == (3,1), 'incorr Xk_pred shape'
 		return ret_val
 
 
 
 
-
-
-
 if __name__ == '__main__':
-	pass
-	
+	E = EKF_pred()
+	Xk_pred_corr_k_m1 = np.random.rand(3,1)
+	Pk_m1 = np.random.rand(3,3)
+	Uk_m1 = np.random.rand(2,1)
+	v = E.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)
+	print(v)
+	n = E.Pk(Pk_m1,Xk_pred_corr_k_m1,Uk_m1)
+	print(n)
 

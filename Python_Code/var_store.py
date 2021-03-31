@@ -11,6 +11,7 @@ class var_store:
 		self.del_k_m2 = 1
 		#store_vals
 		self.Pk_val = None
+		self.Kk_val = None
 ###########################################################################################
 		#loaded variables -> data being loaded in from csv(probably pandas)
 		self.case_name = ""
