@@ -6,22 +6,15 @@ class var_store:
 	def __init__(self):
 
 		#global state vars
-		self.state_rows = 3
-		self.state_cols = 1
-		#ekf variables
-		#T: Front wheel drive torque [N-m]		
-		self.Tk_m1 = 2
 		self.Q = np.ones((3,3))
 		self.R = np.ones((3,3))
-		self.Xk = np.random.rand(3,1)
-		self.del_k_m1 = 2
 		self.del_k_m2 = 1
+		#store_vals
+		self.Pk_val = None
 ###########################################################################################
 		#loaded variables -> data being loaded in from csv(probably pandas)
 		self.case_name = ""
 		self.csv = ""
-		#value returned from rows based on counter value
-		self.counter = 0
 ###########################################################################################
 		#control and state vars
 		#mostly methods
@@ -34,6 +27,8 @@ class var_store:
 		
 		
 ###########################################################################################
+#this is for reading and analyzing collected csvs
+#placeholder var for now
 class data_process(var_store):
 	def __init__(self):
 		super().__init__()

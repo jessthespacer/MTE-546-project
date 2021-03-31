@@ -10,9 +10,7 @@ class EKF_corr(EKF_pred):
 	
 	#!sensor data	
 	def Yk(self):
-		#Need to get from sensor data
-		#column on sensor data
-		#'Time	Steering angle	Throttle	forward speed	yaw rotation	acceleration'
+		#set this at the start of each iteration
 		return np.random.rand(3,1)
 
 	#!sensor model
@@ -49,24 +47,27 @@ class EKF_corr(EKF_pred):
 		assert ret_val.shape == (3,1), 'corrected pred is incorr shape'
 		return ret_val
 
+def main_loop():
+	E_C = EKF_corr()
+	#random vars just for start
+	Xk_pred_corr_k_m1 = np.random.rand(3,1)
+	print(Xk_pred_corr_k_m1)
+	Pk_m1 = np.random.rand(3,3)
+	#print(Xk_pred_corr_k_m1)
+	#SET INITIAL VARS
+	for i in range(9):
+		#below variable will come from simulation controller	
+		Uk_m1 = np.random.rand(2,1)
+		print("Uk_m1")
+		print(Uk_m1)
+		Xk_pred_corr = E_C.Xk_pred_corr(Xk_pred_corr_k_m1,Uk_m1,Pk_m1)
+		Xk_pred_corr_k_m1 = Xk_pred_corr
+		Pk_m1 = E_C.Pk_val
+		print("Xk_pred_corr_k_m1")
+		print(Xk_pred_corr_k_m1)
+
 
 if __name__ == '__main__':
-	EKF_corr = EKF_corr()
-	#2 random matrixes of certain size
-	Xk_pred_corr_k_m1 = np.random.rand(3,1)
-	Uk_m1 = np.random.rand(2,1)
-	Pk_m1 = np.random.rand(3,3)
-	v = EKF_corr.Xk_pred_corr(Xk_pred_corr_k_m1,Uk_m1,Pk_m1)
-	print(v)
-
-
-
-#TODO->
-'''
-- CHECK EACH INDIVIDUAL METHOD
-- HAVE ASSERTIONS FOR INPUT
-- COMPLETE JACOBINAS
-- FINSIH READING AND WRITING CODE FOR EKF DATA
-- Have several iterations
-- GENERATE SIMPLE PLOT DATA
-'''
+	#seeing how the operations happen
+	main_loop()
+	
