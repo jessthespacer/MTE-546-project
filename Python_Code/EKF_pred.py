@@ -8,27 +8,22 @@ class EKF_pred(var_store):
 	def __init__(self):
 		super().__init__()
 
-	#!Throttle setting, 0<T<1
-	def Tk(self):
-		#subject to change if time dependant
-		#get from csv data
-		Tk = self.Tk_m1	
-		return Tk
-
-
 	def dt(self):
 		return 0.05
 
 	#!jacobian of f
 	def Fk(self,Xk_pred_corr_k_m1,Uk_m1):
+		#values
+		T = Uk_m1[0,:][0]
+		del_k_m1 = Uk_m1[1,:][0]
+		#state constants
 		dt = self.dt()
-		b = self.b()
-		T = self.Tk()
+		b = self.b()		
 		c1 = self.c1(T)
 		L = self.L
 		L_r = self.L_r
-		del_k_m1 = self.del_k_m1
-		del_dot_m1	= self.del_dot_m1(self.del_k_m1)	
+		#vars from input		
+		del_dot_m1	= self.del_dot_m1(del_k_m1)	
 		#print('del_dot_m1',del_dot_m1)
 		row_1 = np.array([dt*(-b + c1) + 1,0,0])
 		row_2 = np.array([L*dt*tan(del_k_m1)/(L**2 + L_r**2*tan(del_k_m1)**2),1,0])
@@ -85,7 +80,7 @@ class EKF_pred(var_store):
 		del_k_m1 = Uk_m1[1,:]
 		#check if sterring ange makes sense
 		assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
-		#calculate current iteration
+		#calc_1
 		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt()
 		#calc_2
 		thetha_k = thetha_k_m1 + \
@@ -97,10 +92,10 @@ class EKF_pred(var_store):
 				*(m.cos(del_k_m1)**2)))\
 						*vk_m1*self.del_dot_m1(del_k_m1)*self.dt()
 		#save value for next iteration
-		self.del_k_m2 = del_k_m1[0]
-		
+		self.del_k_m2 = del_k_m1[0]		
 		#insert assertion on shape type
 		ret_val = np.array([vk,thetha_k,w_k])
+		
 		assert ret_val.shape == (3,1), 'incorr Xk_pred shape'
 		return ret_val
 
