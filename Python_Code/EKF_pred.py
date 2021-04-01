@@ -8,8 +8,8 @@ class EKF_pred(var_store):
 	def __init__(self):
 		super().__init__()
 
-	def dt(self):
-		return 0.05
+	def dt(self,val=0.4):
+		return val
 
 	#jacobian of f
 	def Fk(self,Xk_pred_corr_k_m1,Uk_m1):
@@ -89,7 +89,7 @@ class EKF_pred(var_store):
 		#check if sterring ange makes sense
 		assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
 		#calc_1
-		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt()
+		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt(0.4)
 		#calc_2
 		thetha_k = thetha_k_m1 + \
 				((self.L*m.tan(del_k_m1))/(self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2)))\
@@ -99,6 +99,7 @@ class EKF_pred(var_store):
 			(m.tan(del_k_m1)**2)))/(((self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2))**2)\
 				*(m.cos(del_k_m1)**2)))\
 						*vk_m1*self.del_dot_m1(del_k_m1)*self.dt()
+		
 		#save value for next iteration
 		self.del_k_m2 = del_k_m1[0]		
 		#insert assertion on shape type
@@ -112,18 +113,3 @@ class EKF_pred(var_store):
 if __name__ == '__main__':
 	pass
 
-'''
-EKF_pred.py
-Line 12: dt may not be constant. I recommend calculating dt online by subtracting timestamps from each other for each step
-
-General:
-- Use A @ B to multiply matrices A and B instead of np.matmul(), it makes the code easier to read and debug, especially because 
-it lets you do away with all the intermediate val and val_2 variables and such.
-
-e.g. np.matmul(np.matmul(A, B), C) = (A @ B) @ C
-- Why are we implementing everything as classes and methods? This seems way more complex than it needs to be
-- I don't know if the right values are actually being used because they're buried inside class method calls - e.g. 
-I have no idea what self.Pk(Pk_m1, Xk, Uk) is supposed to be. I'd recommend just getting rid of the whole class 
-structure (which makes me sound socialist) and implementing it similarly to how we did in the lab, because I fear 
-it may be causing problems that aren't obvious by inspection
-'''
