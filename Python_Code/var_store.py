@@ -28,31 +28,6 @@ class var_store:
 		
 		
 ###########################################################################################
-#this is for reading and analyzing collected csvs
-#placeholder var for now
-class data_process(var_store):
-	def __init__(self):
-		super().__init__()
-
-
-	def get_data(self):
-		return None
-
-	def process_data(self):
-		return None
-
-	def save_clean_data(self):
-		return None
-
-	def analyze_data_Main(self):
-		#main loop
-		pass
-
-	def visualized_analyzed(self):
-		pass
-
-	def save_analyzed(self):
-		pass
 
 
 
