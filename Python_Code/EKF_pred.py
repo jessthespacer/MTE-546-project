@@ -8,10 +8,10 @@ class EKF_pred(var_store):
 	def __init__(self):
 		super().__init__()
 
-	def dt(self):
-		return 0.05
+	def dt(self,val=0.4):
+		return val
 
-	#!jacobian of f
+	#jacobian of f
 	def Fk(self,Xk_pred_corr_k_m1,Uk_m1):
 		#values
 		T = Uk_m1[0,:][0]
@@ -34,40 +34,48 @@ class EKF_pred(var_store):
 
 	#State covariance
 	def Pk(self,Pk_m1,Xk,Uk):
-		Fk = self.Fk(Xk,Uk)
-		return np.matmul(np.matmul(Fk,Pk_m1),np.transpose(Fk)) + self.Q
+		Fk = self.Fk(Xk,Uk) 
+		self.Pk_val = (Fk@Pk_m1)@np.transpose(Fk) + self.Q
+		return self.Pk_val
 
 	#Steering angle rate [rad/s]
 	def del_dot_m1(self,del_k_m1):
-		del_dot_m1 = (del_k_m1 - self.del_k_m2)/self.dt()
+		self.del_dot_m1_val = (del_k_m1 - self.del_k_m2)/self.dt()
 		#print('self.del_k_m2 ',type(self.del_k_m2))
-		return del_dot_m1
+		return self.del_dot_m1_val 
 
 	#Deceleration caused by drag [m/s2]
 	def ad(self,v):
-		return self.b()*v
+		self.ad_val = self.b()*v
+		return self.ad_val
 
 	#Acceleration caused by engine [m/s2]
 	def af(self,T,v):
-		return self.c1(T)*v + self.c2(T)
+		self.af_val = self.c1(T)*v + self.c2(T)
+		return self.af_val
 
 	#Specific power model parameter 1 [m/s2]
 	def c1(self,T):
-		return -0.8304*(T**2)+1.6639*T
+		self.c1_val = -0.8304*(T**2)+1.6639*T
+		return self.c1_val
 
 	#Specific power model parameter 1 [m/s2]
 	def c2(self,T):
-		return -0.0323*(T**2)+0.4115*T
+		self.c2_val = -0.0323*(T**2)+0.4115*T
+		return self.c2_val
 
 	#direction of motion for COG
-	def Bk_m1(self,del_k_m1):
-		return m.atan((self.L_r/self.L)*m.tan(del_k_m1))
+	def Bk_m1(self,del_k_m1): 
+		self.Bk_m1_val = m.atan((self.L_r/self.L)*m.tan(del_k_m1))
+		return self.Bk_m1_val
 
 	#friction coefficient
 	def b(self,s=1):
-		return 0.365056*(s**(-1))
+		self.b_val =  0.365056*(s**(-1))
+		return self.b_val
 
-	#!State prediction
+
+	#State prediction
 	def Xk_pred(self,Xk_pred_corr_k_m1,Uk_m1):
 		#ceck if inut makes sense
 		assert Xk_pred_corr_k_m1.shape == (3,1), 'incorr Xk_pred_corr_k_m1 shape'
@@ -81,7 +89,7 @@ class EKF_pred(var_store):
 		#check if sterring ange makes sense
 		assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
 		#calc_1
-		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt()
+		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt(0.4)
 		#calc_2
 		thetha_k = thetha_k_m1 + \
 				((self.L*m.tan(del_k_m1))/(self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2)))\
@@ -91,11 +99,11 @@ class EKF_pred(var_store):
 			(m.tan(del_k_m1)**2)))/(((self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2))**2)\
 				*(m.cos(del_k_m1)**2)))\
 						*vk_m1*self.del_dot_m1(del_k_m1)*self.dt()
+		
 		#save value for next iteration
 		self.del_k_m2 = del_k_m1[0]		
 		#insert assertion on shape type
-		ret_val = np.array([vk,thetha_k,w_k])
-		
+		ret_val = np.array([vk,thetha_k,w_k])		
 		assert ret_val.shape == (3,1), 'incorr Xk_pred shape'
 		return ret_val
 
@@ -103,12 +111,5 @@ class EKF_pred(var_store):
 
 
 if __name__ == '__main__':
-	E = EKF_pred()
-	Xk_pred_corr_k_m1 = np.random.rand(3,1)
-	Pk_m1 = np.random.rand(3,3)
-	Uk_m1 = np.random.rand(2,1)
-	v = E.Xk_pred(Xk_pred_corr_k_m1,Uk_m1)
-	print(v)
-	n = E.Pk(Pk_m1,Xk_pred_corr_k_m1,Uk_m1)
-	print(n)
+	pass
 
