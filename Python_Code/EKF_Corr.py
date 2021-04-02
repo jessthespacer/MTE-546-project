@@ -57,8 +57,8 @@ def read_csv(fil_path):
 	Yk = df_Yk.to_numpy()
 	return Uk,Yk
 
-
-
+def compute_errors(predictions,targets):
+	return np.sqrt((predictions-targets)**2)
 
 def plot_state(state_hist,Yk):
 	#Plot state
@@ -70,24 +70,94 @@ def plot_state(state_hist,Yk):
 	Yk_hist_3 = Yk[:,2]
 
 	time = np.array([i for i in range(len(state_hist))])
-	print(len(time),len(state_hist_1))
-	plt.plot(time,state_hist_1,label = 'v')
-	plt.plot(time,state_hist_2,label = 'theta')
-	plt.plot(time,state_hist_3,label = 'w')
-	print(len(time),len(Yk_hist_1))
+	rmse_v = compute_errors(state_hist_1,Yk_hist_1)
+	rmse_theta = compute_errors(state_hist_2,Yk_hist_2)
+	rmse_w = compute_errors(state_hist_3,Yk_hist_3)
+
+	var_list = ['v','theta','w']
+	for val in var_list:
+		if val == 'v':
+			plt.plot(time,state_hist_1,label = 'V EKF')
+			plt.plot(time,Yk_hist_1,label = 'V Groundtruth')
+			
+			#get error change on seperate plot
+
+		elif val == 'theta':
+			plt.plot(time,state_hist_2,label = 'Theta EKF')
+			plt.plot(time,Yk_hist_2,label = 'Theta Groundtruth')
+
+			#get error change on seperate plot
+		else:
+			plt.plot(time,state_hist_3,label = 'W')
+			plt.plot(time,Yk_hist_3,label = 'W Groundtruth')
+			#get error change on seperate plot
+
+		plt.title('State History')
+		plt.xlabel('Time')
+		# Set the y axis label of the current axis.
+		plt.ylabel('State Values Over Time')
+		plt.legend()
+		#plt.show()
+		fn = './plots/' + val + '_' + 'GTvsEKF'
+		plt.savefig(fn)
+		plt.clf()
+
+	#get error change on
+	for val in var_list:
+		if val == 'v':
+			print(len(time),len(rmse_v))
+			plt.plot(time,rmse_v,label = 'RMSE V', color="blue")
+		elif val == 'theta':
+			plt.plot(time,rmse_theta,label = 'RMSE Theta', color="green")	
+		else:
+			plt.plot(time,rmse_w,label = 'RMSE W', color="red")
+		
+
+		plt.title('Error History')
+		plt.xlabel('Time')
+		# Set the y axis label of the current axis.
+		plt.ylabel('Error Values Over Time')
+		plt.legend()
+		#plt.show()
+		fn = './plots/' + val + '_' + 'RMSE'
+		plt.savefig(fn)
+		plt.clf()
+
+
 	
-	plt.plot(time,Yk_hist_1,label = 'v groundtruth')
-	plt.plot(time,Yk_hist_2,label = 'theta groundtruth')
-	plt.plot(time,Yk_hist_3,label = 'w groundtruth')
-	plt.title('State History')
-	plt.xlabel('time step')
+
+
+def plot_P(P):
+	P = np.array(P)
+	P_11 = P[:,0,0]
+	P_12 = P[:,0,1]
+	P_13 = P[:,0,2]
+	P_21 = P[:,1,0]
+	P_22 = P[:,1,1]
+	P_23 = P[:,1,2]
+	P_31 = P[:,2,0]
+	P_32 = P[:,2,1]
+	P_33 = P[:,2,2]
+	time = np.array([i for i in range(len(P))])
+	plt.plot(time,P_11,label = 'P_11')
+	plt.plot(time,P_12,label = 'P_12')
+	plt.plot(time,P_13,label = 'P_13')
+	plt.plot(time,P_21,label = 'P_21')
+	plt.plot(time,P_22,label = 'P_22')
+	plt.plot(time,P_23,label = 'P_23')
+	plt.plot(time,P_31,label = 'P_31')
+	plt.plot(time,P_32,label = 'P_32')
+	plt.plot(time,P_33,label = 'P_33')
+	plt.title('P Matrix History')
+	plt.xlabel('Time')
 	# Set the y axis label of the current axis.
-	plt.ylabel('State Values')
+	plt.ylabel('P Values Over Time')
 	plt.legend()
-	plt.show()
+	#plt.show()
+	fn = './plots/' + 'P_Matrix_vs_Time'
+	plt.savefig(fn)
+	plt.clf()
 	
-
-
 def main_loop(Yk,Uk):
 	state_hist = []
 	Pk_hist = []
@@ -113,32 +183,28 @@ def main_loop(Yk,Uk):
 		#set curr values as previous
 		Xk_pred_corr_k_m1 = Xk_pred_corr
 		Pk_m1 = Pk
-		#print(Xk_pred_corr_k_m1)
+		Pk_hist.append(Pk_m1)
 		state_hist.append(Xk_pred_corr_k_m1)
-
-	return state_hist
+	
+	return state_hist,Pk_hist	
 
 	
 	
 
 
-
-
-
-
-		
-		
 
 if __name__ == '__main__':
 	EKF_corr = EKF_corr()
 	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinalwithnoise.csv"
 	Uk,Yk = read_csv(path)
-	EKF_state_hist = main_loop(Yk,Uk)
+	EKF_state_hist,Pk_hist = main_loop(Yk,Uk)
 	#get true states
+	plot_P(Pk_hist)
+
 	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinal.csv"
 	Uk_real,Yk_real = read_csv(path)
 	plot_state(EKF_state_hist,Yk_real)
-	
+
 	
 	
 
