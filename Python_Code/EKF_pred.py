@@ -42,6 +42,7 @@ class EKF_pred(var_store):
 	def del_dot_m1(self,del_k_m1):
 		self.del_dot_m1_val = (del_k_m1 - self.del_k_m2)/self.dt()
 		#print('self.del_k_m2 ',type(self.del_k_m2))
+		print(self.del_dot_m1_val )
 		return self.del_dot_m1_val 
 
 	#Deceleration caused by drag [m/s2]

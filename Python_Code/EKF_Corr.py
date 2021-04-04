@@ -195,13 +195,13 @@ def main_loop(Yk,Uk):
 
 if __name__ == '__main__':
 	EKF_corr = EKF_corr()
-	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinalwithnoise.csv"
+	path = r"..\cases\MVPcasefinalwithnoise.csv"
 	Uk,Yk = read_csv(path)
 	EKF_state_hist,Pk_hist = main_loop(Yk,Uk)
 	#get true states
 	plot_P(Pk_hist)
 
-	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinal.csv"
+	path = r"..\cases\MVPcasefinal.csv"
 	Uk_real,Yk_real = read_csv(path)
 	plot_state(EKF_state_hist,Yk_real)
 
