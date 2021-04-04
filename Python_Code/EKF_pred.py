@@ -1,7 +1,7 @@
 import numpy as np  
 from var_store import var_store
 import math as m
-from math import tan,cos
+from math import tan,cos,sqrt
 
 class EKF_pred(var_store):
 
@@ -25,9 +25,9 @@ class EKF_pred(var_store):
 		#vars from input		
 		del_dot_m1	= self.del_dot_m1(del_k_m1)	
 		#print('del_dot_m1',del_dot_m1)
-		row_1 = np.array([dt*(-b + c1) + 1,0,0])
-		row_2 = np.array([L*dt*tan(del_k_m1)/(L**2 + L_r**2*tan(del_k_m1)**2),1,0])
-		row_3 = np.array([L*del_dot_m1*dt*(L**2 - L_r**2*tan(del_k_m1)**2)/((L**2 + L_r**2*tan(del_k_m1)**2)**2*cos(del_k_m1)**2),0,1])
+		row_1 = np.array([1 + (c1 - b)*dt,0,0])
+		row_2 = np.array([tan(del_k_m1)*dt/sqrt(L**2 + L_r**2*tan(del_k_m1)**2),1,0])
+		row_3 = np.array([L**2*del_dot_m1*(tan(del_k_m1)**2 + 1)*dt/(L**2 + L_r**2*tan(del_k_m1)**2)**1.5,0,1])
 		ret_val =  np.stack([row_1,row_2,row_3])
 		assert ret_val.shape == (3,3), 'weird jacobian size'
 		return ret_val
@@ -42,7 +42,6 @@ class EKF_pred(var_store):
 	def del_dot_m1(self,del_k_m1):
 		self.del_dot_m1_val = (del_k_m1 - self.del_k_m2)/self.dt()
 		#print('self.del_k_m2 ',type(self.del_k_m2))
-		print(self.del_dot_m1_val )
 		return self.del_dot_m1_val 
 
 	#Deceleration caused by drag [m/s2]
@@ -71,8 +70,8 @@ class EKF_pred(var_store):
 		return self.Bk_m1_val
 
 	#friction coefficient
-	def b(self,s=1):
-		self.b_val =  0.365056*(s**(-1))
+	def b(self):
+		self.b_val = 0.365056
 		return self.b_val
 
 
@@ -90,16 +89,16 @@ class EKF_pred(var_store):
 		#check if sterring ange makes sense
 		assert del_k_m1 < m.pi/2 and del_k_m1 > -1 *m.pi/2, 'steering agle out of bounds'
 		#calc_1
-		vk = vk_m1 + (self.af(T_k_m1,vk_m1) - self.ad(vk_m1))*self.dt(0.4)
+		vdot = self.af(T_k_m1,vk_m1) - self.ad(vk_m1)
+		vk = vk_m1 + vdot*self.dt()
 		#calc_2
 		thetha_k = thetha_k_m1 + \
-				((self.L*m.tan(del_k_m1))/(self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2)))\
-						*vk_m1*self.dt()
+				tan(del_k_m1)*vk_m1*self.dt()/sqrt(self.L**2 + self.L_r**2*tan(del_k_m1)**2)
+
 		#calc_3
-		w_k = w_k_m1 + ((self.L*(self.L**2 - (self.L_r**2)*\
-			(m.tan(del_k_m1)**2)))/(((self.L**2 + (self.L_r**2)*(m.tan(del_k_m1)**2))**2)\
-				*(m.cos(del_k_m1)**2)))\
-						*vk_m1*self.del_dot_m1(del_k_m1)*self.dt()
+		w_k = w_k_m1 + (vk_m1*self.del_dot_m1(del_k_m1)*self.L**2*(tan(del_k_m1)**2 + 1) + \
+			vdot*tan(del_k_m1)*(self.L**2 + self.L_r**2*tan(del_k_m1)**2))*self.dt()/ \
+			(self.L**2 + self.L_r**2*tan(del_k_m1)**2)**1.5
 		
 		#save value for next iteration
 		self.del_k_m2 = del_k_m1[0]		

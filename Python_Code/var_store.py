@@ -4,8 +4,8 @@ class var_store:
 	#values subject to change after receiving simulation data
 	def __init__(self):
 		#global state vars
-		self.Q = np.eye(3)
-		self.R = np.eye(3)
+		self.Q = np.array([[0.5, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
+		self.R = np.array([[0.5, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
 		self.del_k_m2 = 1
 		#store_vals
 		self.Pk_val = None
