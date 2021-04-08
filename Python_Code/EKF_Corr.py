@@ -96,7 +96,7 @@ def plot_state(state_hist,Yk,case_name):
             folder = './plots_MVP/'
         if case_name == 'rightturncasefinalwithnoise':
             folder = './plots_R/'
-        fn = folder + val + '_' + 'RMSE'
+        fn = folder + val + '_' + 'GT'
         if not os.path.exists(folder):
             os.makedirs(folder) 
         if not os.path.exists(folder):
@@ -205,8 +205,7 @@ def main_loop(Yk,Uk):
         Xk_pred_corr_k_m1 = Xk_pred_corr
         Pk_m1 = Pk
         Pk_hist.append(Pk_m1)
-        state_hist.append(Xk_pred_corr_k_m1)
-    
+        state_hist.append(Xk_pred_corr_k_m1)    
     return state_hist,Pk_hist   
 
     
@@ -221,7 +220,6 @@ if __name__ == '__main__':
     onlyfiles = [f for f in os.listdir(case_path) if os.path.isfile(os.path.join(case_path, f))]
     noisy_paths = [os.path.join(case_path,n) for n in onlyfiles if "casefinalwithnoise" in n]
     real_paths = [os.path.join(case_path,p) for p in onlyfiles if "casefinal" in p if "withnoise" not in p]
-
     #iterate oevr all possible cases
     for (path,path_2) in zip(noisy_paths,real_paths):
         case_name = os.path.basename(path).split('.')[0]
