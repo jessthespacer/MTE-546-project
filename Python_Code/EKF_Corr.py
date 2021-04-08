@@ -25,8 +25,7 @@ class EKF_corr(EKF_pred):
 	def Pk_corr(self,Pk_m1,Xk,Uk):
 		#Xk and Uk are actually predm1 and m1
 		#written as Xk,Uk for simplicity
-		identity = np.eye(3)
-		self.Pk_corr_val = (identity - (self.Kk_corr(Pk_m1,Xk,Uk)\
+		self.Pk_corr_val = (np.eye(3) - (self.Kk_corr(Pk_m1,Xk,Uk)\
 			@self.Hk(Xk,Uk)))@self.Pk(Pk_m1,Xk,Uk)
 		return self.Pk_corr_val
 
@@ -41,7 +40,7 @@ class EKF_corr(EKF_pred):
 
 	#jacobian of h(x)
 	def Hk(self,Xk,Uk):		
-		return self.Fk(Xk,Uk)
+		return np.eye(3)
 
 ##################	#########	#########	#########	#########	#########	#########			
 def read_csv(fil_path):
@@ -164,7 +163,7 @@ def main_loop(Yk,Uk):
 	K_hist = []
 	Xk_pred_corr_k_m1 = np.array([Yk[0]]).transpose()
 	state_hist.append(Xk_pred_corr_k_m1)
-	Pk_m1 = np.random.rand(3,3)
+	Pk_m1 = np.eye(3)
 	for i in range(1,len(Uk)):
 		#set carla data
 		EKF_corr.dt()
@@ -195,13 +194,13 @@ def main_loop(Yk,Uk):
 
 if __name__ == '__main__':
 	EKF_corr = EKF_corr()
-	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinalwithnoise.csv"
+	path = r"..\cases\MVPcasefinalwithnoise.csv"
 	Uk,Yk = read_csv(path)
 	EKF_state_hist,Pk_hist = main_loop(Yk,Uk)
 	#get true states
 	plot_P(Pk_hist)
 
-	path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases\MVPcasefinal.csv"
+	path = r"..\cases\MVPcasefinal.csv"
 	Uk_real,Yk_real = read_csv(path)
 	plot_state(EKF_state_hist,Yk_real)
 
