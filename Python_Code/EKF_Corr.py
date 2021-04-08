@@ -1,4 +1,5 @@
 import warnings
+#to ignore panda warnings
 warnings.simplefilter(action='ignore', category=Warning)
 import pandas as pd
 import numpy as np  
@@ -6,6 +7,7 @@ from var_store import var_store
 import math as m
 from EKF_pred import EKF_pred 
 import matplotlib.pyplot as plt
+import os
 
 class EKF_corr(EKF_pred):
 	
@@ -58,7 +60,6 @@ def read_csv(fil_path):
 
 def compute_errors(predictions,targets):
 	return np.sqrt((predictions-targets)**2)
-
 def plot_state(state_hist,Yk):
 	#Plot state
 	state_hist_1 = np.transpose(np.array(state_hist)[:,0,:]).flatten()
@@ -67,36 +68,30 @@ def plot_state(state_hist,Yk):
 	Yk_hist_1 = Yk[:,0]
 	Yk_hist_2 = Yk[:,1]
 	Yk_hist_3 = Yk[:,2]
-
 	time = np.array([i for i in range(len(state_hist))])
 	rmse_v = compute_errors(state_hist_1,Yk_hist_1)
 	rmse_theta = compute_errors(state_hist_2,Yk_hist_2)
 	rmse_w = compute_errors(state_hist_3,Yk_hist_3)
-
 	var_list = ['v','theta','w']
 	for val in var_list:
 		if val == 'v':
 			plt.plot(time,state_hist_1,label = 'V EKF')
 			plt.plot(time,Yk_hist_1,label = 'V Groundtruth')
+			plt.ylabel('V [m/s]')
 			
-			#get error change on seperate plot
-
 		elif val == 'theta':
 			plt.plot(time,state_hist_2,label = 'Theta EKF')
 			plt.plot(time,Yk_hist_2,label = 'Theta Groundtruth')
+			plt.ylabel('Theta [rad]')
 
-			#get error change on seperate plot
 		else:
 			plt.plot(time,state_hist_3,label = 'W')
 			plt.plot(time,Yk_hist_3,label = 'W Groundtruth')
-			#get error change on seperate plot
+			plt.ylabel('W [rad/s]')
 
 		plt.title('State History')
-		plt.xlabel('Time')
-		# Set the y axis label of the current axis.
-		plt.ylabel('State Values Over Time')
+		plt.xlabel('Time [s]')	
 		plt.legend()
-		#plt.show()
 		fn = './plots/' + val + '_' + 'GTvsEKF'
 		plt.savefig(fn)
 		plt.clf()
@@ -104,20 +99,20 @@ def plot_state(state_hist,Yk):
 	#get error change on
 	for val in var_list:
 		if val == 'v':
-			print(len(time),len(rmse_v))
 			plt.plot(time,rmse_v,label = 'RMSE V', color="blue")
+			plt.ylabel('Error Values Over Time [m/s]')
 		elif val == 'theta':
 			plt.plot(time,rmse_theta,label = 'RMSE Theta', color="green")	
+			plt.ylabel('Error Values Over Time [rad]')
 		else:
 			plt.plot(time,rmse_w,label = 'RMSE W', color="red")
+			plt.ylabel('Error Values Over Time [rad/s]')
 		
 
 		plt.title('Error History')
-		plt.xlabel('Time')
-		# Set the y axis label of the current axis.
+		plt.xlabel('Time [s]')
 		plt.ylabel('Error Values Over Time')
 		plt.legend()
-		#plt.show()
 		fn = './plots/' + val + '_' + 'RMSE'
 		plt.savefig(fn)
 		plt.clf()
@@ -148,7 +143,7 @@ def plot_P(P):
 	plt.plot(time,P_32,label = 'P_32')
 	plt.plot(time,P_33,label = 'P_33')
 	plt.title('P Matrix History')
-	plt.xlabel('Time')
+	plt.xlabel('Time [s]')
 	# Set the y axis label of the current axis.
 	plt.ylabel('P Values Over Time')
 	plt.legend()
@@ -163,7 +158,7 @@ def main_loop(Yk,Uk):
 	K_hist = []
 	Xk_pred_corr_k_m1 = np.array([Yk[0]]).transpose()
 	state_hist.append(Xk_pred_corr_k_m1)
-	Pk_m1 = np.eye(3)
+	Pk_m1 = np.random.rand(3,3)
 	for i in range(1,len(Uk)):
 		#set carla data
 		EKF_corr.dt()
@@ -194,18 +189,19 @@ def main_loop(Yk,Uk):
 
 if __name__ == '__main__':
 	EKF_corr = EKF_corr()
-	path = r"..\cases\MVPcasefinalwithnoise.csv"
-	Uk,Yk = read_csv(path)
-	EKF_state_hist,Pk_hist = main_loop(Yk,Uk)
-	#get true states
-	plot_P(Pk_hist)
+	#path where all the cases are stored
+	case_path = r"C:\Users\shawn paul\Desktop\MTE-546-project\cases"
+	onlyfiles = [f for f in os.listdir(case_path) if os.path.isfile(os.path.join(case_path, f))]
+	noisy_paths = [os.path.join(case_path,n) for n in onlyfiles if "casefinalwithnoise" in n]
+	real_paths = [os.path.join(case_path,p) for p in onlyfiles if "casefinal" in p if "withnoise" not in p]
 
-	path = r"..\cases\MVPcasefinal.csv"
-	Uk_real,Yk_real = read_csv(path)
-	plot_state(EKF_state_hist,Yk_real)
-
-	
-	
-
-
-
+	#iterate oevr all possible cases
+	for (path,path_2) in zip(noisy_paths,real_paths):
+		case_name = os.path.basename(path)
+		print(case_name)
+		Uk,Yk = read_csv(path)
+		EKF_state_hist,Pk_hist = main_loop(Yk,Uk)
+		#get true states
+		plot_P(Pk_hist)
+		Uk_real,Yk_real = read_csv(path_2)
+		plot_state(EKF_state_hist,Yk_real)
