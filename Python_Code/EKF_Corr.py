@@ -58,8 +58,10 @@ def read_csv(fil_path):
     Yk = df_Yk.to_numpy()
     return Uk,Yk
 
+#compute mean for each point
 def compute_errors(predictions,targets):
     return np.sqrt((predictions-targets)**2)
+
 def plot_state(state_hist,Yk,case_name):
     #Plot state
     state_hist_1 = np.transpose(np.array(state_hist)[:,0,:]).flatten()
@@ -163,7 +165,6 @@ def plot_P(P,case_name):
     # Set the y axis label of the current axis.
     plt.ylabel('P Values Over Time')
     plt.legend()
-    #plt.show()
     if case_name == 'leftturncasefinalwithnoise':
         folder = './plots_L/'
     if case_name == 'MVPcasefinalwithnoise':
@@ -229,3 +230,8 @@ if __name__ == '__main__':
         plot_P(Pk_hist,case_name)
         Uk_real,Yk_real = read_csv(path_2)
         plot_state(EKF_state_hist,Yk_real,case_name)
+        print('case name')
+        print(case_name)
+        error = compute_errors(np.array([EKF_state_hist]).squeeze(),np.array([Yk_real]))
+        p_error = np.mean(error*100/np.array([EKF_state_hist]).squeeze(),1)
+        print(np.sqrt(p_error**2))
