@@ -8,6 +8,11 @@ import math as m
 from EKF_pred import EKF_pred 
 import matplotlib.pyplot as plt
 import os
+from fastdtw import fastdtw
+from sklearn.preprocessing import MinMaxScaler
+# call MinMaxScaler object
+min_max_scaler = MinMaxScaler()
+from scipy.spatial.distance import euclidean
 
 class EKF_corr(EKF_pred):
     
@@ -233,5 +238,28 @@ if __name__ == '__main__':
         print('case name')
         print(case_name)
         error = compute_errors(np.array([EKF_state_hist]).squeeze(),np.array([Yk_real]))
+        #print(np.array([EKF_state_hist]).squeeze().shape,np.array([Yk_real])[0,:,:].shape)
+        arr_1,arr_2 = np.array([EKF_state_hist]).squeeze(),np.array([Yk_real])[0,:,:]        
+        for col in range(arr_1.shape[1]):
+            print('state'+str(col+1))
+            EKF_state_hist = np.array(EKF_state_hist)
+            Yk_real = np.array(Yk_real)            
+            EKF_state_hist = np.array\
+                ([EKF_state_hist]).squeeze()
+            Yk_real = np.array\
+                        ([Yk_real])[0,:,:] 
+            
+            print(EKF_state_hist.shape)
+            print(Yk_real.shape)
+            break
+
+
+            EKF_state_hist = min_max_scaler.fit_transform(EKF_state_hist)
+            Yk_real= min_max_scaler.fit_transform(Yk_real)
+            distance, path = fastdtw(EKF_state_hist,Yk_real, dist=euclidean)
+            print(distance/len(Yk_real))
+        break
+            
+
         p_error = np.mean(error*100/np.array([EKF_state_hist]).squeeze(),1)
-        print(np.sqrt(p_error**2))
+       
